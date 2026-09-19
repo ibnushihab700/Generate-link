@@ -40,11 +40,10 @@
 
             document.getElementById('manualBtn').href = shopeeUrl;
 
-            // Logika Pembungkus / Redirect:
             // 1. Buka Adsterra Direct Link di tab/jendela baru
             window.open(adsterraUrl, '_blank');
 
-            // 2. Arahkan tab saat ini ke Shopee Affiliate setelah jeda singkat (1 detik)
+            // 2. Arahkan tab saat ini ke Shopee Affiliate
             setTimeout(() => {
                 window.location.href = shopeeUrl;
             }, 1000);
