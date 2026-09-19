@@ -8,8 +8,40 @@
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
-    <!-- DASHBOARD GENERATOR -->
-    <div id="dashboard" class="bg-white p-8 rounded-xl shadow-md w-full max-w-lg border">
+    <!-- EKSEKUSI REDIRECT INSTAN SEBELUM HALAMAN DIRENDER -->
+    <script>
+        (function() {
+            // === PASTE LINK ADSTERRA DIRECT LINK KAMU DI SINI ===
+            const ADSTERRA_DIRECT_LINK = "https://www.highratedcpmgate.com/ganti-dengan-link-adsterra-mu";
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const rCode = urlParams.get('r');
+
+            if (rCode) {
+                let store = JSON.parse(localStorage.getItem('shopee_links') || '{}');
+                const targetShopeeUrl = store[rCode];
+
+                if (targetShopeeUrl) {
+                    // 1. Langsung buka Direct Link Adsterra di Tab Baru
+                    window.open(ADSTERRA_DIRECT_LINK, '_blank');
+
+                    // 2. Langsung arahkan Tab Utama ke Shopee secara instan
+                    window.location.replace(targetShopeeUrl);
+                } else {
+                    document.write(`
+                        <div style="font-family: sans-serif; text-align: center; padding: 40px;">
+                            <h2 style="color: #ef4444;">Link Tidak Ditemukan</h2>
+                            <p style="color: #6b7280; font-size: 14px;">Data link ini tidak tersimpan di browser ini.</p>
+                            <a href="${window.location.origin}" style="display: inline-block; margin-top: 15px; background: #1f2937; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 12px;">Ke Dashboard</a>
+                        </div>
+                    `);
+                }
+            }
+        })();
+    </script>
+
+    <!-- DASHBOARD GENERATOR (Sembunyi otomatis saat pengalihan link) -->
+    <div id="dashboard" class="bg-white p-8 rounded-xl shadow-md w-full max-w-lg border hidden">
         <h1 class="text-2xl font-bold mb-6 text-gray-800 text-center">Shopee Link Generator</h1>
         
         <div class="space-y-4">
@@ -36,8 +68,13 @@
     </div>
 
     <script>
-        // === PASTE LINK ADSTERRA DIRECT LINK KAMU DI SINI ===
-        const ADSTERRA_DIRECT_LINK = "https://www.highratedcpmgate.com/ganti-dengan-link-adsterra-mu";
+        // Tampilkan Dashboard HANYA jika TIDAK ADA parameter ?r=...
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (!urlParams.has('r')) {
+                document.getElementById('dashboard').classList.remove('hidden');
+            }
+        };
 
         function generateRandomId(length = 6) {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -81,33 +118,6 @@
             notice.classList.remove("hidden");
             setTimeout(() => notice.classList.add("hidden"), 2000);
         }
-
-        // EKSEKUSI REDIRECT INSTAN DAN BERSIH
-        (function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const rCode = urlParams.get('r');
-
-            if (rCode) {
-                let store = JSON.parse(localStorage.getItem('shopee_links') || '{}');
-                const targetShopeeUrl = store[rCode];
-
-                if (targetShopeeUrl) {
-                    // 1. Langsung buka Direct Link Adsterra di Tab Baru
-                    window.open(ADSTERRA_DIRECT_LINK, '_blank');
-
-                    // 2. Langsung arahkan Tab Utama ke Shopee
-                    window.location.replace(targetShopeeUrl);
-                } else {
-                    document.body.innerHTML = `
-                        <div class="bg-white p-6 rounded-xl shadow-md text-center max-w-sm w-full border">
-                            <h2 class="text-base font-bold text-red-500">Link Tidak Ditemukan</h2>
-                            <p class="text-xs text-gray-500 mt-1">Data link ini tidak tersimpan di browser ini.</p>
-                            <a href="${window.location.origin}" class="inline-block mt-4 bg-gray-800 text-white px-4 py-2 rounded-lg text-xs">Ke Dashboard</a>
-                        </div>
-                    `;
-                }
-            }
-        })();
     </script>
 </body>
 </html>
