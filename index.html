@@ -35,11 +35,10 @@
         </div>
     </div>
 
-    <!-- HALAMAN INSTANT REDIRECT (Sembunyi secara default) -->
-    <div id="redirector" class="bg-white p-8 rounded-xl shadow-md text-center max-w-md w-full border hidden">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500 mx-auto mb-3"></div>
-        <h2 class="text-lg font-semibold text-gray-800">Mengarahkan...</h2>
-        <p class="text-gray-500 text-xs mt-1">Anda sedang dialihkan ke Shopee.</p>
+    <!-- HALAMAN INSTANT REDIRECT (TANPA COUNTDOWN & ANIMASI) -->
+    <div id="redirector" class="bg-white p-6 rounded-xl shadow-md text-center max-w-sm w-full border hidden">
+        <h2 class="text-base font-semibold text-gray-800">Mengarahkan ke Shopee...</h2>
+        <p class="text-gray-500 text-xs mt-1">Mohon tunggu sebentar.</p>
         
         <div class="mt-4">
             <a id="manualBtn" href="#" class="inline-block bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-medium hover:bg-orange-600 transition">
@@ -95,13 +94,13 @@
             setTimeout(() => notice.classList.add("hidden"), 2000);
         }
 
-        // EKSEKUSI REDIRECT INSTAN TANPA COUNTDOWN
+        // EKSEKUSI REDIRECT INSTAN (TANPA JEDA TIMER)
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const rCode = urlParams.get('r');
 
             if (rCode) {
-                // Sembunyikan Dashboard Generator, tampilkan layar memuat singkat
+                // Sembunyikan Dashboard Generator
                 document.getElementById('dashboard').classList.add('hidden');
                 document.getElementById('redirector').classList.remove('hidden');
 
@@ -120,7 +119,7 @@
                     document.body.innerHTML = `
                         <div class="bg-white p-6 rounded-xl shadow-md text-center max-w-sm w-full border">
                             <h2 class="text-base font-bold text-red-500">Link Tidak Ditemukan</h2>
-                            <p class="text-xs text-gray-500 mt-1">Data link ini tidak ada di browser ini.</p>
+                            <p class="text-xs text-gray-500 mt-1">Data link ini tidak tersimpan di browser ini.</p>
                             <a href="${window.location.origin}" class="inline-block mt-4 bg-gray-800 text-white px-4 py-2 rounded-lg text-xs">Ke Dashboard</a>
                         </div>
                     `;
