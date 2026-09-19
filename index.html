@@ -3,29 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Link Generator - Shopee Affiliate</title>
+    <title>Short Link Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
-    <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-lg border">
+    <!-- DASHBOARD GENERATOR -->
+    <div id="dashboard" class="bg-white p-8 rounded-xl shadow-md w-full max-w-lg border">
         <h1 class="text-2xl font-bold mb-6 text-gray-800 text-center">Shopee Link Generator</h1>
         
         <div class="space-y-4">
-            <!-- 1 KOLOM INPUT -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Masukkan Link Shopee Affiliate</label>
                 <input type="url" id="shopeeUrl" placeholder="https://s.shopee.co.id/..." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none">
             </div>
 
-            <button onclick="generateLink()" id="btnSubmit" class="w-full bg-orange-500 text-white font-semibold py-3 rounded-lg hover:bg-orange-600 transition">
+            <button onclick="generateShortLink()" class="w-full bg-orange-500 text-white font-semibold py-3 rounded-lg hover:bg-orange-600 transition">
                 Generate Link Pendek
             </button>
         </div>
 
-        <!-- 1 KOLOM HASIL OUTPUT -->
         <div id="resultBox" class="mt-6 hidden">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Hasil Link Pendek:</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Hasil Link Pendek Domain Sendiri:</label>
             <div class="flex gap-2">
                 <input type="text" id="resultUrl" readonly class="w-full p-3 border rounded-lg bg-gray-50 text-sm font-mono focus:outline-none">
                 <button onclick="copyLink()" class="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition text-sm">
@@ -36,37 +35,52 @@
         </div>
     </div>
 
+    <!-- HALAMAN REDIRECT / COUNTDOWN (Sembunyi secara default) -->
+    <div id="redirector" class="bg-white p-8 rounded-xl shadow-md text-center max-w-md w-full border hidden">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+        <h2 class="text-xl font-semibold text-gray-800">Menghubungkan ke Shopee...</h2>
+        <p class="text-gray-500 text-sm mt-2">Mohon tunggu sebentar, Anda sedang dialihkan.</p>
+        
+        <div class="mt-6">
+            <a id="manualBtn" href="#" class="inline-block bg-orange-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition">
+                Klik di sini jika tidak beralih otomatis
+            </a>
+        </div>
+    </div>
+
     <script>
-        async function generateLink() {
+        // === SETTING LINK ADSTERRA KAMU DI SINI ===
+        const ADSTERRA_DIRECT_LINK = "https://www.highratedcpmgate.com/ganti-dengan-link-adsterra-mu";
+
+        // MENGUBAH URL PANJANG JADI KODE PINGGIR RINGKAS
+        function encodeShort(url) {
+            return btoa(url).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+        }
+
+        function decodeShort(str) {
+            str = str.replace(/-/g, '+').replace(/_/g, '/');
+            while (str.length % 4) str += '=';
+            return atob(str);
+        }
+
+        // FUNGSI GENERATE LINK
+        function generateShortLink() {
             const shopeeInput = document.getElementById('shopeeUrl').value.trim();
-            const btn = document.getElementById('btnSubmit');
 
             if (!shopeeInput) {
                 alert('Harap masukkan link Shopee terlebih dahulu!');
                 return;
             }
 
-            btn.disabled = true;
-            btn.innerText = "Membuat Link Pendek...";
+            // Ambil ID Shopee dari URL (misal angka/kode pendek produk)
+            const code = encodeShort(shopeeInput);
+            const baseUrl = window.location.origin + window.location.pathname;
+            
+            // Format link hasil dengan domain kamu sendiri & ID rapi
+            const finalShortUrl = `${baseUrl}?r=${code}`;
 
-            try {
-                // Mengubah URL Shopee menjadi bentuk ringkas (TinyURL)
-                const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(shopeeInput)}`);
-                const shortUrl = await response.text();
-
-                if (shortUrl && shortUrl.startsWith('http')) {
-                    document.getElementById('resultUrl').value = shortUrl;
-                } else {
-                    document.getElementById('resultUrl').value = shopeeInput;
-                }
-            } catch (error) {
-                // Jika jaringan/API terhambat, tampilkan link asli
-                document.getElementById('resultUrl').value = shopeeInput;
-            } finally {
-                document.getElementById('resultBox').classList.remove('hidden');
-                btn.disabled = false;
-                btn.innerText = "Generate Link Pendek";
-            }
+            document.getElementById('resultUrl').value = finalShortUrl;
+            document.getElementById('resultBox').classList.remove('hidden');
         }
 
         function copyLink() {
@@ -78,7 +92,34 @@
             notice.classList.remove("hidden");
             setTimeout(() => notice.classList.add("hidden"), 2000);
         }
-    </script>
 
+        // LOGIKA DETEKSI REDIRECT
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const rCode = urlParams.get('r');
+
+            if (rCode) {
+                // Sembunyikan Dashboard, Tampilkan Halaman Redirect
+                document.getElementById('dashboard').classList.add('hidden');
+                document.getElementById('redirector').classList.remove('hidden');
+
+                try {
+                    const targetShopeeUrl = decodeShort(rCode);
+                    document.getElementById('manualBtn').href = targetShopeeUrl;
+
+                    // 1. Buka Adsterra di Tab Baru
+                    window.open(ADSTERRA_DIRECT_LINK, '_blank');
+
+                    // 2. Beralih ke Shopee di Tab Utama
+                    setTimeout(() => {
+                        window.location.href = targetShopeeUrl;
+                    }, 1200);
+                } catch(e) {
+                    alert("Link tidak valid!");
+                    window.location.href = window.location.origin;
+                }
+            }
+        };
+    </script>
 </body>
 </html>
