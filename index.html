@@ -3,22 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Link Generator - Smartlink Wrapper</title>
+    <title>Dashboard Link Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
     <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-lg">
-        <h1 class="text-2xl font-bold mb-6 text-gray-800 text-center">Affiliate Link Generator</h1>
+        <h1 class="text-2xl font-bold mb-6 text-gray-800 text-center">Shopee Link Wrapper</h1>
         
         <div class="space-y-4">
+            <!-- HANYA 1 KOLOM INPUT -->
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Link Shopee Affiliate</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Masukkan Link Shopee Affiliate</label>
                 <input type="url" id="shopeeUrl" placeholder="https://s.shopee.co.id/..." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none">
-            </div>
-
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Link Adsterra Direct Link</label>
-                <input type="url" id="adsterraUrl" placeholder="https://www.highratedcpmgate.com/..." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
 
             <button onclick="generateLink()" class="w-full bg-orange-500 text-white font-semibold py-3 rounded-lg hover:bg-orange-600 transition">
@@ -26,6 +22,7 @@
             </button>
         </div>
 
+        <!-- HANYA 1 KOLOM HASIL OUTPUT -->
         <div id="resultBox" class="mt-6 hidden">
             <label class="block text-sm font-medium text-gray-700 mb-1">Hasil Link Pembungkus:</label>
             <div class="flex gap-2">
@@ -39,19 +36,22 @@
     </div>
 
     <script>
+        // === SETTING LINK ADSTERRA KAMU DI SINI ===
+        // Ganti URL di bawah dengan Direct Link Adsterra milikmu sendiri
+        const ADSTERRA_DIRECT_LINK = "https://www.highratedcpmgate.com/ganti-dengan-link-adsterra-mu";
+
         function generateLink() {
             const shopee = document.getElementById('shopeeUrl').value.trim();
-            const adsterra = document.getElementById('adsterraUrl').value.trim();
 
-            if (!shopee || !adsterra) {
-                alert('Harap isi kedua link terlebih dahulu!');
+            if (!shopee) {
+                alert('Harap masukkan link Shopee terlebih dahulu!');
                 return;
             }
 
-            // Enkripsi URL ke Base64 agar rapi di parameter
-            const payload = btoa(JSON.stringify({ s: shopee, a: adsterra }));
+            // Gabungkan link Shopee dan Adsterra dalam format Base64
+            const payload = btoa(JSON.stringify({ s: shopee, a: ADSTERRA_DIRECT_LINK }));
             
-            // Domain otomatis mengikuti lokasi hosting Cloudflare kamu
+            // Generate link pembungkus
             const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
             const finalLink = `${baseUrl}redirect.html?data=${encodeURIComponent(payload)}`;
 
