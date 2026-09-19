@@ -3,44 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Link Generator</title>
+    <title>Shopee Link Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- LZ-String Library for maximal client-side compression without external backend APIs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
     
     <script>
         // === PASTE ADSTERRA DIRECT LINK BELOW ===
         const ADSTERRA_DIRECT_LINK = "https://www.highratedcpmgate.com/ganti-dengan-link-adsterra-mu";
 
-        // URL-safe Base64 decoder
-        function decodeUrl(str) {
+        // Base62 Alphabet dictionary for URL-safe short strings
+        const B62_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+
+        // Compress and encode Shopee URL to ultra-short parameter string
+        function compressAndShorten(url) {
             try {
-                // Restore standard Base64 characters from URL-safe variants
-                let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-                while (base64.length % 4) {
-                    base64 += '=';
+                // Strip common Shopee prefix if possible to optimize length
+                let cleanUrl = url;
+                let prefixIndex = -1;
+                if (cleanUrl.startsWith('https://s.shopee.co.id/')) {
+                    cleanUrl = cleanUrl.replace('https://s.shopee.co.id/', '');
+                    prefixIndex = 1;
+                } else if (cleanUrl.startsWith('https://shope.ee/')) {
+                    cleanUrl = cleanUrl.replace('https://shope.ee/', '');
+                    prefixIndex = 2;
+                } else if (cleanUrl.startsWith('https://')) {
+                    cleanUrl = cleanUrl.replace('https://', '');
+                    prefixIndex = 3;
                 }
-                return atob(base64);
+
+                // Compress using LZ-String uint8 array
+                const compressedBytes = LZString.compressToUint8Array(cleanUrl);
+                
+                // Convert compressed bytes into Base62 string
+                let hexStr = '';
+                for (let i = 0; i < compressedBytes.length; i++) {
+                    hexStr += compressedBytes[i].toString(16).padStart(2, '0');
+                }
+                
+                let num = BigInt('0x' + hexStr);
+                let b62 = '';
+                while (num > 0n) {
+                    b62 = B62_ALPHABET[Number(num % 62n)] + b62;
+                    num = num / 62n;
+                }
+
+                // Append prefix marker
+                return (prefixIndex > 0 ? prefixIndex : 0) + b62;
+            } catch (e) {
+                // Fallback to URL-safe Base64 if compression fails
+                return '0' + btoa(url).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+            }
+        }
+
+        // Decompress and decode short parameter back into original Shopee URL
+        function decompressAndExpand(code) {
+            try {
+                if (!code || code.length < 2) return null;
+                const prefixType = code.charAt(0);
+                const encodedData = code.slice(1);
+
+                let decompressedUrl = '';
+
+                if (prefixType === '0' && encodedData.length > 20) {
+                    // Base64 fallback decompression
+                    let base64 = encodedData.replace(/-/g, '+').replace(/_/g, '/');
+                    while (base64.length % 4) base64 += '=';
+                    decompressedUrl = atob(base64);
+                } else {
+                    // Base62 + LZ-String decompression
+                    let num = 0n;
+                    for (let i = 0; i < encodedData.length; i++) {
+                        const charIndex = B62_ALPHABET.indexOf(encodedData.charAt(i));
+                        if (charIndex === -1) return null;
+                        num = num * 62n + BigInt(charIndex);
+                    }
+
+                    let hexStr = num.toString(16);
+                    if (hexStr.length % 2 !== 0) hexStr = '0' + hexStr;
+
+                    const bytes = new Uint8Array(hexStr.length / 2);
+                    for (let i = 0; i < hexStr.length; i += 2) {
+                        bytes[i / 2] = parseInt(hexStr.substr(i, 2), 16);
+                    }
+
+                    decompressedUrl = LZString.decompressFromUint8Array(bytes);
+
+                    // Reconstruct full URL from prefix marker
+                    if (prefixType === '1') decompressedUrl = 'https://s.shopee.co.id/' + decompressedUrl;
+                    else if (prefixType === '2') decompressedUrl = 'https://shope.ee/' + decompressedUrl;
+                    else if (prefixType === '3') decompressedUrl = 'https://' + decompressedUrl;
+                }
+
+                return (decompressedUrl && decompressedUrl.startsWith('http')) ? decompressedUrl : null;
             } catch (e) {
                 return null;
             }
         }
 
-        // Check for redirect query parameter before rendering body content
+        // Execute instant silent redirection BEFORE body rendering to prevent flicker
         (function processRedirect() {
             const urlParams = new URLSearchParams(window.location.search);
             const rCode = urlParams.get('r');
 
             if (rCode) {
-                const targetUrl = decodeUrl(rCode);
+                const targetUrl = decompressAndExpand(rCode);
 
-                if (targetUrl && (targetUrl.startsWith('http://') || targetUrl.startsWith('https://'))) {
+                if (targetUrl) {
                     // 1. Open Adsterra Direct Link in a new tab
                     try {
                         window.open(ADSTERRA_DIRECT_LINK, '_blank');
                     } catch (err) {
-                        console.error('Pop-up execution blocked or failed:', err);
+                        console.error('Pop-up execution blocked:', err);
                     }
 
-                    // 2. Immediately replace current tab location with target Shopee URL
+                    // 2. Instantly replace current tab location with full Shopee target
                     window.location.replace(targetUrl);
                 }
             }
@@ -52,7 +129,7 @@
     <div id="dashboard" class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg w-full max-w-md border border-gray-100 hidden">
         <div class="text-center mb-6">
             <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Shopee Link Generator</h1>
-            <p class="text-xs text-gray-500 mt-1">Buat link pembungkus Adsterra dengan domain sendiri</p>
+            <p class="text-xs text-gray-500 mt-1">Shortener link domain sendiri + Adsterra Popup (Tanpa API/KV)</p>
         </div>
         
         <div class="space-y-4">
@@ -78,10 +155,10 @@
             </button>
         </div>
 
-        <!-- Result Output Container -->
+        <!-- Result Output Box -->
         <div id="resultBox" class="mt-6 pt-6 border-t border-gray-100 hidden">
             <label for="resultUrl" class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-2">
-                Hasil Link (Domain Sendiri):
+                Hasil Link (Domain Sendiri - Super Pendek):
             </label>
             <div class="flex gap-2">
                 <input 
@@ -101,13 +178,13 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 </svg>
-                Link berhasil disalin ke clipboard!
+                Link berhasil disalin!
             </p>
         </div>
     </div>
 
     <script>
-        // Ensure dashboard is only rendered if no redirect parameter (?r=) is present
+        // Show dashboard only when accessing standard page without redirect query parameter
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (!urlParams.has('r')) {
@@ -115,19 +192,7 @@
             }
         });
 
-        // URL-safe Base64 encoder (removes padding & replaces non-URL safe chars)
-        function encodeUrl(str) {
-            try {
-                return btoa(str)
-                    .replace(/=/g, '')
-                    .replace(/\+/g, '-')
-                    .replace(/\//g, '_');
-            } catch (e) {
-                return null;
-            }
-        }
-
-        // Main Link Generation Function
+        // Generate action triggered from UI button
         function generateShortLink() {
             const inputField = document.getElementById('shopeeUrl');
             const shopeeInput = inputField.value.trim();
@@ -142,27 +207,27 @@
                 return;
             }
 
-            const encodedCode = encodeUrl(shopeeInput);
-            if (!encodedCode) {
+            const shortCode = compressAndShorten(shopeeInput);
+            if (!shortCode) {
                 alert('Gagal memproses URL.');
                 return;
             }
 
-            // Build output URL using current origin + pathname
+            // Build output URL using current domain + short parameter
             const baseUrl = window.location.origin + window.location.pathname;
-            const finalUrl = `${baseUrl}?r=${encodedCode}`;
+            const finalUrl = `${baseUrl}?r=${shortCode}`;
 
             document.getElementById('resultUrl').value = finalUrl;
             document.getElementById('resultBox').classList.remove('hidden');
         }
 
-        // Robust Copy to Clipboard function
+        // Copy generated link to clipboard
         function copyToClipboard() {
             const resultInput = document.getElementById('resultUrl');
             if (!resultInput.value) return;
 
             resultInput.select();
-            resultInput.setSelectionRange(0, 99999); // Mobile support
+            resultInput.setSelectionRange(0, 99999);
 
             try {
                 document.execCommand('copy');
