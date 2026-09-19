@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instant Link Generator</title>
+    <title>Link Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
@@ -32,18 +32,6 @@
                 </button>
             </div>
             <p id="copyNotice" class="text-xs text-green-600 mt-1 hidden">✓ Link berhasil disalin!</p>
-        </div>
-    </div>
-
-    <!-- HALAMAN INSTANT REDIRECT (TANPA COUNTDOWN & ANIMASI) -->
-    <div id="redirector" class="bg-white p-6 rounded-xl shadow-md text-center max-w-sm w-full border hidden">
-        <h2 class="text-base font-semibold text-gray-800">Mengarahkan ke Shopee...</h2>
-        <p class="text-gray-500 text-xs mt-1">Mohon tunggu sebentar.</p>
-        
-        <div class="mt-4">
-            <a id="manualBtn" href="#" class="inline-block bg-orange-500 text-white px-4 py-2 rounded-lg text-xs font-medium hover:bg-orange-600 transition">
-                Klik jika tidak beralih otomatis
-            </a>
         </div>
     </div>
 
@@ -94,27 +82,21 @@
             setTimeout(() => notice.classList.add("hidden"), 2000);
         }
 
-        // EKSEKUSI REDIRECT INSTAN (TANPA JEDA TIMER)
-        window.onload = function() {
+        // EKSEKUSI REDIRECT INSTAN DAN BERSIH
+        (function() {
             const urlParams = new URLSearchParams(window.location.search);
             const rCode = urlParams.get('r');
 
             if (rCode) {
-                // Sembunyikan Dashboard Generator
-                document.getElementById('dashboard').classList.add('hidden');
-                document.getElementById('redirector').classList.remove('hidden');
-
                 let store = JSON.parse(localStorage.getItem('shopee_links') || '{}');
                 const targetShopeeUrl = store[rCode];
 
                 if (targetShopeeUrl) {
-                    document.getElementById('manualBtn').href = targetShopeeUrl;
-
                     // 1. Langsung buka Direct Link Adsterra di Tab Baru
                     window.open(ADSTERRA_DIRECT_LINK, '_blank');
 
                     // 2. Langsung arahkan Tab Utama ke Shopee
-                    window.location.href = targetShopeeUrl;
+                    window.location.replace(targetShopeeUrl);
                 } else {
                     document.body.innerHTML = `
                         <div class="bg-white p-6 rounded-xl shadow-md text-center max-w-sm w-full border">
@@ -125,7 +107,7 @@
                     `;
                 }
             }
-        };
+        })();
     </script>
 </body>
 </html>
