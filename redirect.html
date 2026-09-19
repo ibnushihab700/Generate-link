@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mengarahkan ke Produk...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-xl shadow-sm text-center max-w-md w-full border">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+        <h2 class="text-xl font-semibold text-gray-800">Menghubungkan ke Shopee...</h2>
+        <p class="text-gray-500 text-sm mt-2">Mohon tunggu sebentar, Anda sedang dialihkan ke halaman produk.</p>
+        
+        <div class="mt-6">
+            <a id="manualBtn" href="#" class="inline-block bg-orange-500 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 transition">
+                Klik di sini jika tidak beralih otomatis
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            const data = params.get('data');
+            if (!data) return null;
+
+            try {
+                return JSON.parse(atob(decodeURIComponent(data)));
+            } catch (e) {
+                return null;
+            }
+        }
+
+        const urls = getQueryParams();
+
+        if (urls && urls.s && urls.a) {
+            const shopeeUrl = urls.s;
+            const adsterraUrl = urls.a;
+
+            document.getElementById('manualBtn').href = shopeeUrl;
+
+            // Logika Pembungkus / Redirect:
+            // 1. Buka Adsterra Direct Link di tab/jendela baru
+            window.open(adsterraUrl, '_blank');
+
+            // 2. Arahkan tab saat ini ke Shopee Affiliate setelah jeda singkat (1 detik)
+            setTimeout(() => {
+                window.location.href = shopeeUrl;
+            }, 1000);
+        } else {
+            document.body.innerHTML = '<div class="text-center p-10 text-red-500">Link tidak valid atau telah kadaluarsa.</div>';
+        }
+    </script>
+</body>
+</html>
