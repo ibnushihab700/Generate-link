@@ -3,88 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Link Generator</title>
+    <title>Shopee Affiliate Link Generator</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // === KONFIGURASI ADSTERRA DIRECT LINK ===
+        // === PASTE YOUR ADSTERRA DIRECT LINK HERE ===
         const ADSTERRA_DIRECT_LINK = "https://www.highratedcpmgate.com/ganti-dengan-link-adsterra-mu";
 
-        // EKSEKUSI REDIRECT INSTAN KETIKA LINK DIBUKA
         (function() {
             const urlParams = new URLSearchParams(window.location.search);
             const rCode = urlParams.get('r');
 
             if (rCode) {
                 let targetShopeeUrl = "";
+                const prefix = rCode.charAt(0);
+                const codeBody = rCode.slice(1);
 
-                // Rekonstruksi link Shopee dari kode pendek
-                if (rCode.startsWith('http://') || rCode.startsWith('https://')) {
-                    targetShopeeUrl = rCode;
-                } else if (rCode.startsWith('s_')) {
-                    targetShopeeUrl = "https://s.shopee.co.id/" + rCode.substring(2);
-                } else if (rCode.startsWith('e_')) {
-                    targetShopeeUrl = "https://shope.ee/" + rCode.substring(2);
-                } else {
+                // Reconstruct full Shopee URL from ultra-short parameter
+                if (prefix === 's') {
+                    targetShopeeUrl = "https://s.shopee.co.id/" + codeBody;
+                } else if (prefix === 'e') {
+                    targetShopeeUrl = "https://shope.ee/" + codeBody;
+                } else if (prefix === 'b') {
                     try {
-                        let decoded = atob(rCode.replace(/-/g, '+').replace(/_/g, '/'));
-                        targetShopeeUrl = decoded;
-                    } catch (e) {
-                        targetShopeeUrl = "https://s.shopee.co.id/" + rCode;
+                        let base64 = codeBody.replace(/-/g, '+').replace(/_/g, '/');
+                        while (base64.length % 4) base64 += '=';
+                        targetShopeeUrl = atob(base64);
+                    } catch (err) {
+                        targetShopeeUrl = "";
                     }
+                } else {
+                    // Fallback if prefix is missing
+                    targetShopeeUrl = "https://s.shopee.co.id/" + rCode;
                 }
 
                 if (targetShopeeUrl) {
-                    // 1. Langsung buka Direct Link Adsterra di Tab Baru
-                    window.open(ADSTERRA_DIRECT_LINK, '_blank');
+                    // 1. Open Adsterra Direct Link in a new tab
+                    try {
+                        window.open(ADSTERRA_DIRECT_LINK, '_blank');
+                    } catch (e) {
+                        console.error('Pop-up execution blocked:', e);
+                    }
 
-                    // 2. Langsung arahkan Tab Utama ke Shopee
+                    // 2. Instantly redirect current tab to target Shopee URL
                     window.location.replace(targetShopeeUrl);
                 }
             }
         })();
     </script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex items-center justify-center p-4">
 
-    <!-- DASHBOARD GENERATOR -->
-    <div id="dashboard" class="bg-white p-8 rounded-xl shadow-md w-full max-w-lg border hidden">
-        <h1 class="text-2xl font-bold mb-6 text-gray-800 text-center">Shopee Link Generator</h1>
-        
+    <div id="dashboard" class="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100 hidden">
+        <div class="text-center mb-6">
+            <div class="inline-flex p-3 bg-orange-100 text-orange-600 rounded-2xl mb-3">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Shopee Link Generator</h1>
+            <p class="text-xs text-slate-500 mt-1">Hasil ultra-pendek (`?r=s8Kx9Pq`) • Domain sendiri • Anti Database</p>
+        </div>
+
         <div class="space-y-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Masukkan Link Shopee Affiliate</label>
-                <input type="url" id="shopeeUrl" placeholder="https://s.shopee.co.id/..." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none">
+                <label for="shopeeUrl" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
+                    Masukkan Link Shopee Affiliate
+                </label>
+                <input 
+                    type="url" 
+                    id="shopeeUrl" 
+                    placeholder="https://s.shopee.co.id/8Kx9Pq" 
+                    class="w-full p-3.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none text-sm transition"
+                    required
+                >
             </div>
 
-            <button onclick="generateShortLink()" class="w-full bg-orange-500 text-white font-semibold py-3 rounded-lg hover:bg-orange-600 transition">
-                Generate Link Pendek
+            <button 
+                onclick="generateShortLink()" 
+                id="btnSubmit"
+                class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3.5 rounded-xl transition shadow-md hover:shadow-lg active:scale-[0.99] text-sm"
+            >
+                Generate Link Super Pendek
             </button>
         </div>
 
-        <div id="resultBox" class="mt-6 hidden">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Hasil Link Pendek (Domain Sendiri):</label>
+        <!-- Result Box -->
+        <div id="resultBox" class="mt-6 pt-6 border-t border-slate-100 hidden">
+            <label for="resultUrl" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
+                Hasil Link Pendek Domain Sendiri:
+            </label>
             <div class="flex gap-2">
-                <input type="text" id="resultUrl" readonly class="w-full p-3 border rounded-lg bg-gray-50 text-sm font-mono focus:outline-none">
-                <button onclick="copyLink()" class="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition text-sm">
+                <input 
+                    type="text" 
+                    id="resultUrl" 
+                    readonly 
+                    class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 text-xs font-mono text-slate-700 focus:outline-none"
+                >
+                <button 
+                    onclick="copyLink()" 
+                    class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-3 rounded-xl transition text-xs font-semibold shrink-0 active:scale-95"
+                >
                     Salin
                 </button>
             </div>
-            <p id="copyNotice" class="text-xs text-green-600 mt-1 hidden">✓ Link berhasil disalin!</p>
+            <p id="copyNotice" class="text-xs text-emerald-600 mt-2 font-medium hidden flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Link berhasil disalin!
+            </p>
         </div>
     </div>
 
     <script>
-        // Tampilkan Dashboard HANYA jika TIDAK ADA parameter ?r=...
-        window.onload = function() {
+        // Only show dashboard if ?r= parameter is NOT present in URL
+        window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (!urlParams.has('r')) {
                 document.getElementById('dashboard').classList.remove('hidden');
             }
-        };
+        });
 
-        // FUNGSI GENERATE LINK SUPER PENDEK NATIVE
+        // Function to extract unique ID and format parameter to ?r=s8Kx9Pq
         function generateShortLink() {
-            const shopeeInput = document.getElementById('shopeeUrl').value.trim();
+            const inputField = document.getElementById('shopeeUrl');
+            const shopeeInput = inputField.value.trim();
 
             if (!shopeeInput) {
                 alert('Harap masukkan link Shopee terlebih dahulu!');
@@ -93,34 +137,47 @@
 
             let shortCode = "";
 
-            // Otomatis mengekstrak ID unik Shopee agar hasil link sangat pendek
             if (shopeeInput.includes('s.shopee.co.id/')) {
-                const parts = shopeeInput.split('s.shopee.co.id/');
-                shortCode = "s_" + parts[1].split('?')[0].replace(/\//g, '');
+                // Extract unique ID after s.shopee.co.id/
+                const idPart = shopeeInput.split('s.shopee.co.id/')[1].split('?')[0].replace(/\//g, '');
+                shortCode = "s" + idPart;
             } else if (shopeeInput.includes('shope.ee/')) {
-                const parts = shopeeInput.split('shope.ee/');
-                shortCode = "e_" + parts[1].split('?')[0].replace(/\//g, '');
+                // Extract unique ID after shope.ee/
+                const idPart = shopeeInput.split('shope.ee/')[1].split('?')[0].replace(/\//g, '');
+                shortCode = "e" + idPart;
             } else {
-                // Fallback enkripsi Base64 ringkas jika format link Shopee berbeda
-                shortCode = btoa(shopeeInput).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+                // Fallback for long general URLs using URL-safe Base64
+                const b64 = btoa(shopeeInput).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+                shortCode = "b" + b64;
             }
 
-            // Buat URL hasil akhir
+            // Build final URL using current domain and tiny parameter
             const baseUrl = window.location.origin + window.location.pathname;
-            const finalShortUrl = `${baseUrl}?r=${shortCode}`;
+            const finalUrl = `${baseUrl}?r=${shortCode}`;
 
-            document.getElementById('resultUrl').value = finalShortUrl;
+            document.getElementById('resultUrl').value = finalUrl;
             document.getElementById('resultBox').classList.remove('hidden');
         }
 
+        // Copy generated link function
         function copyLink() {
             const copyText = document.getElementById("resultUrl");
+            if (!copyText.value) return;
+
             copyText.select();
-            navigator.clipboard.writeText(copyText.value);
-            
+            copyText.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                navigator.clipboard.writeText(copyText.value);
+            }
+
             const notice = document.getElementById("copyNotice");
             notice.classList.remove("hidden");
-            setTimeout(() => notice.classList.add("hidden"), 2000);
+            setTimeout(() => {
+                notice.classList.add("hidden");
+            }, 2000);
         }
     </script>
 </body>
