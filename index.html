@@ -1,73 +1,18 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Link Generator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-lg">
-        <h1 class="text-2xl font-bold mb-6 text-gray-800 text-center">Shopee Link Wrapper</h1>
+<script>
+    function generateLink() {
+        const shopee = document.getElementById('shopeeUrl').value.trim();
+
+        if (!shopee) {
+            alert('Harap masukkan link Shopee terlebih dahulu!');
+            return;
+        }
+
+        const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
         
-        <div class="space-y-4">
-            <!-- HANYA 1 KOLOM INPUT -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Masukkan Link Shopee Affiliate</label>
-                <input type="url" id="shopeeUrl" placeholder="https://s.shopee.co.id/..." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-orange-500 outline-none">
-            </div>
+        // Menggunakan parameter 'to' langsung tanpa enkripsi Base64 yang panjang
+        const finalLink = `${baseUrl}go.html?to=${encodeURIComponent(shopee)}`;
 
-            <button onclick="generateLink()" class="w-full bg-orange-500 text-white font-semibold py-3 rounded-lg hover:bg-orange-600 transition">
-                Generate Link Pembungkus
-            </button>
-        </div>
-
-        <!-- HANYA 1 KOLOM HASIL OUTPUT -->
-        <div id="resultBox" class="mt-6 hidden">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Hasil Link Pembungkus:</label>
-            <div class="flex gap-2">
-                <input type="text" id="resultUrl" readonly class="w-full p-3 border rounded-lg bg-gray-50 text-sm font-mono">
-                <button onclick="copyLink()" class="bg-gray-800 text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition text-sm">
-                    Salin
-                </button>
-            </div>
-            <p id="copyNotice" class="text-xs text-green-600 mt-1 hidden">Link berhasil disalin!</p>
-        </div>
-    </div>
-
-    <script>
-        // === SETTING LINK ADSTERRA KAMU DI SINI ===
-        // Ganti URL di bawah dengan Direct Link Adsterra milikmu sendiri
-        const ADSTERRA_DIRECT_LINK = "https://www.highratedcpmgate.com/ganti-dengan-link-adsterra-mu";
-
-        function generateLink() {
-            const shopee = document.getElementById('shopeeUrl').value.trim();
-
-            if (!shopee) {
-                alert('Harap masukkan link Shopee terlebih dahulu!');
-                return;
-            }
-
-            // Gabungkan link Shopee dan Adsterra dalam format Base64
-            const payload = btoa(JSON.stringify({ s: shopee, a: ADSTERRA_DIRECT_LINK }));
-            
-            // Generate link pembungkus
-            const baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
-            const finalLink = `${baseUrl}redirect.html?data=${encodeURIComponent(payload)}`;
-
-            document.getElementById('resultUrl').value = finalLink;
-            document.getElementById('resultBox').classList.remove('hidden');
-        }
-
-        function copyLink() {
-            const copyText = document.getElementById("resultUrl");
-            copyText.select();
-            navigator.clipboard.writeText(copyText.value);
-            
-            const notice = document.getElementById("copyNotice");
-            notice.classList.remove("hidden");
-            setTimeout(() => notice.classList.add("hidden"), 2000);
-        }
-    </script>
-</body>
-</html>
+        document.getElementById('resultUrl').value = finalLink;
+        document.getElementById('resultBox').classList.remove('hidden');
+    }
+</script>
